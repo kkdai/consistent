@@ -18,16 +18,20 @@ func TestBasicOp(t *testing.T) {
 	for _, v := range targetObj {
 		server, err := ch.Get(v)
 		if err == nil {
-			fmt.Println(server)
+			fmt.Printf("%s ", server)
 		}
 	}
+
+	fmt.Println()
 	ch.Add("t4")
 	ch.Add("t5")
 	for _, v := range targetObj {
 		server, err := ch.Get(v)
 		if err == nil {
-			fmt.Println(server)
+			fmt.Printf("%s ", server)
 		}
 	}
+
+	fmt.Println()
 
 }

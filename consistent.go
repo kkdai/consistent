@@ -2,10 +2,10 @@ package consistent
 
 import (
 	"errors"
-	"fmt"
 	"hash"
 	"hash/fnv"
 	"sort"
+	"strconv"
 )
 
 type SortedKeys []uint32
@@ -15,19 +15,25 @@ func (x SortedKeys) Less(i, j int) bool { return x[i] < x[j] }
 func (x SortedKeys) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 
 type ConsistentHashing struct {
+	NumOfVirtualNode int
+
 	hashSortedKeys SortedKeys
+	h              hash.Hash32
 
 	circleRing map[uint32]string
 	dataSet    map[string]bool
-
-	h hash.Hash32
 }
 
 func NewConsistentHashing() *ConsistentHashing {
-	newCH := &ConsistentHashing{h: fnv.New32()}
+	newCH := &ConsistentHashing{h: fnv.New32(), NumOfVirtualNode: 20}
 	newCH.circleRing = make(map[uint32]string)
 	newCH.dataSet = make(map[string]bool)
 	return newCH
+}
+
+func (c *ConsistentHashing) getVirtualNodeKey(index int, obj string) uint32 {
+	newObjStr := strconv.Itoa(index) + "-" + obj
+	return c.hasKey(newObjStr)
 }
 
 // Add a node into this consistent hashing ring
@@ -39,6 +45,13 @@ func (c *ConsistentHashing) Add(node string) {
 	c.dataSet[node] = true
 	key := c.hasKey(node)
 	c.circleRing[key] = node
+
+	//Add virtual node for "balance"
+	for i := 0; i < c.NumOfVirtualNode; i++ {
+		vk := c.getVirtualNodeKey(i, node)
+		c.circleRing[vk] = node
+	}
+
 	c.updateSortHashKeys()
 }
 
@@ -51,6 +64,13 @@ func (c *ConsistentHashing) Remove(node string) {
 	delete(c.dataSet, node)
 	key := c.hasKey(node)
 	delete(c.circleRing, key)
+
+	//Delete virtual node
+	for i := 0; i < c.NumOfVirtualNode; i++ {
+		vk := c.getVirtualNodeKey(i, node)
+		delete(c.circleRing, vk)
+	}
+
 	c.updateSortHashKeys()
 }
 
@@ -59,7 +79,7 @@ func (c *ConsistentHashing) searchNearRingIndex(obj string) int {
 
 	targetIndex := sort.Search(len(c.hashSortedKeys), func(i int) bool { return c.hashSortedKeys[i] >= targetKey })
 
-	fmt.Println("key=", targetKey, " index=", targetIndex)
+	//fmt.Println("key=", targetKey, " index=", targetIndex)
 	if targetIndex >= len(c.hashSortedKeys) {
 		targetIndex = 0
 	}
@@ -84,7 +104,7 @@ func (c *ConsistentHashing) Get(obj string) (string, error) {
 	}
 
 	nearObj, _ := c.circleRing[c.hashSortedKeys[c.searchNearRingIndex(obj)]]
-	fmt.Println("Get:", nearObj, " size circle=", len(c.circleRing), " ring=", c.circleRing)
+	//fmt.Println("Get:", nearObj, " size circle=", len(c.circleRing), " ring=", c.circleRing)
 	return nearObj, nil
 }
 

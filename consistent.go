@@ -14,6 +14,8 @@ func (x SortedKeys) Less(i, j int) bool { return x[i] < x[j] }
 func (x SortedKeys) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 
 type ConsistentHashing struct {
+	// It is number of virtual node. The Virtual node is concept to duplicate node to archieve balance in ConsistentHashing
+	// Default number of virtual node is 20, it will be more balance if your incrase this value
 	NumOfVirtualNode int
 
 	hashSortedKeys SortedKeys
@@ -22,6 +24,7 @@ type ConsistentHashing struct {
 	dataSet    map[string]bool
 }
 
+// New a Consistent Hashing with default 20 virtual node
 func NewConsistentHashing() *ConsistentHashing {
 	newCH := &ConsistentHashing{NumOfVirtualNode: 20}
 	newCH.circleRing = make(map[uint32]string)
@@ -29,9 +32,15 @@ func NewConsistentHashing() *ConsistentHashing {
 	return newCH
 }
 
-func (c *ConsistentHashing) getVirtualNodeKey(index int, obj string) uint32 {
-	newObjStr := strconv.Itoa(index) + "-" + obj
-	return c.hasKey(newObjStr)
+// Get a nearest object name from input object in consistent hashing ring
+func (c *ConsistentHashing) Get(obj string) (string, error) {
+	if len(c.dataSet) == 0 {
+		return "", errors.New("Empty struct")
+	}
+
+	nearObj, _ := c.circleRing[c.hashSortedKeys[c.searchNearRingIndex(obj)]]
+	//fmt.Println("Get:", nearObj, " size circle=", len(c.circleRing), " ring=", c.circleRing)
+	return nearObj, nil
 }
 
 // Add a node into this consistent hashing ring
@@ -72,6 +81,20 @@ func (c *ConsistentHashing) Remove(node string) {
 	c.updateSortHashKeys()
 }
 
+// List the whole nodes in consistent hashing ring
+func (c *ConsistentHashing) ListNodes() []string {
+	var retList []string
+	for k, _ := range c.dataSet {
+		retList = append(retList, k)
+	}
+	return retList
+}
+
+func (c *ConsistentHashing) getVirtualNodeKey(index int, obj string) uint32 {
+	newObjStr := strconv.Itoa(index) + "-" + obj
+	return c.hasKey(newObjStr)
+}
+
 func (c *ConsistentHashing) searchNearRingIndex(obj string) int {
 	targetKey := c.hasKey(obj)
 
@@ -93,26 +116,6 @@ func (c *ConsistentHashing) updateSortHashKeys() {
 		c.hashSortedKeys = append(c.hashSortedKeys, key)
 	}
 	sort.Sort(c.hashSortedKeys)
-}
-
-// Get a nearest object name from input object in consistent hashing ring
-func (c *ConsistentHashing) Get(obj string) (string, error) {
-	if len(c.dataSet) == 0 {
-		return "", errors.New("Empty struct")
-	}
-
-	nearObj, _ := c.circleRing[c.hashSortedKeys[c.searchNearRingIndex(obj)]]
-	//fmt.Println("Get:", nearObj, " size circle=", len(c.circleRing), " ring=", c.circleRing)
-	return nearObj, nil
-}
-
-// List the whole nodes in consistent hashing ring
-func (c *ConsistentHashing) ListNodes() []string {
-	var retList []string
-	for k, _ := range c.dataSet {
-		retList = append(retList, k)
-	}
-	return retList
 }
 
 func (c *ConsistentHashing) hasKey(obj string) uint32 {

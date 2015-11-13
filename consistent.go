@@ -2,8 +2,7 @@ package consistent
 
 import (
 	"errors"
-	"hash"
-	"hash/fnv"
+	"hash/crc32"
 	"sort"
 	"strconv"
 )
@@ -18,14 +17,13 @@ type ConsistentHashing struct {
 	NumOfVirtualNode int
 
 	hashSortedKeys SortedKeys
-	h              hash.Hash32
 
 	circleRing map[uint32]string
 	dataSet    map[string]bool
 }
 
 func NewConsistentHashing() *ConsistentHashing {
-	newCH := &ConsistentHashing{h: fnv.New32(), NumOfVirtualNode: 20}
+	newCH := &ConsistentHashing{NumOfVirtualNode: 20}
 	newCH.circleRing = make(map[uint32]string)
 	newCH.dataSet = make(map[string]bool)
 	return newCH
@@ -118,8 +116,10 @@ func (c *ConsistentHashing) ListNodes() []string {
 }
 
 func (c *ConsistentHashing) hasKey(obj string) uint32 {
-	data := []byte(obj)
-	c.h.Reset()
-	c.h.Write(data)
-	return c.h.Sum32()
+	var scratch [64]byte
+	if len(obj) < 64 {
+
+		copy(scratch[:], obj)
+	}
+	return crc32.ChecksumIEEE(scratch[:len(obj)])
 }

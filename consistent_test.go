@@ -9,26 +9,26 @@ import (
 
 func TestBasicOp(t *testing.T) {
 	ch := NewConsistentHashing()
-	ch.Add("t1")
-	ch.Add("t2")
-	ch.Add("t3")
+	ch.Add("server1")
+	ch.Add("server2")
+	ch.Add("server3")
 
 	fmt.Println(ch.ListNodes())
-	targetObj := []string{"t1", "t2", "t3", "s1", "s2", "s3"}
+	targetObj := []string{"client1", "client2", "client3", "client4", "client5", "client6"}
 	for _, v := range targetObj {
 		server, err := ch.Get(v)
 		if err == nil {
-			fmt.Printf("%s ", server)
+			fmt.Printf("client: %s in server: %s \n", v, server)
 		}
 	}
 
-	fmt.Println()
-	ch.Add("t4")
-	ch.Add("t5")
+	fmt.Println("----")
+	ch.Add("server4")
+	ch.Add("server5")
 	for _, v := range targetObj {
 		server, err := ch.Get(v)
 		if err == nil {
-			fmt.Printf("%s ", server)
+			fmt.Printf("client: %s in server: %s \n", v, server)
 		}
 	}
 

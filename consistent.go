@@ -26,10 +26,11 @@ type ConsistentHashing struct {
 
 // New a Consistent Hashing with default 20 virtual node
 func NewConsistentHashing() *ConsistentHashing {
-	newCH := &ConsistentHashing{NumOfVirtualNode: 20}
-	newCH.circleRing = make(map[uint32]string)
-	newCH.dataSet = make(map[string]bool)
-	return newCH
+	return &ConsistentHashing{
+		NumOfVirtualNode: 20,
+		circleRing:       make(map[uint32]string),
+		dataSet:          make(map[string]bool),
+	}
 }
 
 // Get a nearest object name from input object in consistent hashing ring
@@ -39,7 +40,6 @@ func (c *ConsistentHashing) Get(obj string) (string, error) {
 	}
 
 	nearObj, _ := c.circleRing[c.hashSortedKeys[c.searchNearRingIndex(obj)]]
-	//fmt.Println("Get:", nearObj, " size circle=", len(c.circleRing), " ring=", c.circleRing)
 	return nearObj, nil
 }
 
@@ -100,7 +100,6 @@ func (c *ConsistentHashing) searchNearRingIndex(obj string) int {
 
 	targetIndex := sort.Search(len(c.hashSortedKeys), func(i int) bool { return c.hashSortedKeys[i] >= targetKey })
 
-	//fmt.Println("key=", targetKey, " index=", targetIndex)
 	if targetIndex >= len(c.hashSortedKeys) {
 		targetIndex = 0
 	}

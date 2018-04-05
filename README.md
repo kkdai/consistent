@@ -22,11 +22,11 @@ Consistent Hashing has 4 features:
 
 In this application you will see:
 
-####Balance
+#### Balance
 
 We use virtual node to make replica for to make sure it will balance. (not all node pick the same server).
 
-####Monotonicity
+#### Monotonicity
 
 Use the hash key function, it will make sure it always pick the same server (in the same quantity of server)
 

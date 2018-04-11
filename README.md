@@ -24,7 +24,7 @@ In this application you will see:
 
 #### Balance
 
-We use virtual node to make replica for load balance. (not all node pick the same server).
+We use virtual node to make replica for load distribution. (not all node pick the same server).
 
 #### Monotonicity
 

@@ -56,7 +56,7 @@ package main
 
 import (
 	"fmt"
-    "github.com/kkdai/consistent"
+    . "github.com/kkdai/consistent"
 )
 
 func main() {

@@ -81,7 +81,6 @@ func main() {
 //client: client5 in server: server1
 //client: client6 in server: server3
 
-	fmt.Println("----")
 	ch.Add("server4")
 	ch.Add("server5")
 	for _, v := range targetObj {
